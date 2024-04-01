@@ -1,0 +1,343 @@
+# OPlayer UI
+
+[![npm](https://img.shields.io/npm/v/@oplayer/ui?style=flat-square&label=@oplayer/ui)](https://www.npmjs.com/package/@oplayer/ui)
+
+![oplayer-mobile](https://github.com/shiyiya/oplayer/raw/main/packages/ui/oplayer-ui-mobile.jpg)
+
+## Install
+
+```bash
+npm i @oplayer/core @oplayer/ui
+```
+
+```html
+<script src="https://cdn.jsdelivr.net/npm/@oplayer/core@latest/dist/index.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@oplayer/ui@latest/dist/index.core.js"></script>
+
+<!-- or just one -->
+<!-- <script src="https://cdn.jsdelivr.net/npm/@oplayer/core@latest/dist/index.ui.js"></script> -->
+```
+
+## Basic
+
+```js
+const player = Player.make('#player', {
+  source: {
+    title: '君の名は',
+    src: 'https://oplayer.vercel.app/君の名は.mp4',
+    poster: 'https://oplayer.vercel.app/poster.png'
+  }
+})
+  .use([OUI()])
+  .create()
+```
+
+## Full-Options
+
+```typescript
+export type UiConfig = {
+  theme?: {
+    primaryColor?: string
+    watermark?: {
+      /** img or svg */
+      src: string
+      // make screenshot include watermark?
+      // set positioning here [top, left, right, bottom]
+      style?: Record<string, string>
+      attrs?: Record<string, string>
+    }
+
+    progress?: {
+      /**
+       * default: 'auto'
+       * auto: mobile->top pc->top
+       */
+      position?: 'auto' | 'top' | 'center'
+      backward?: number
+      forward?: number
+      /**
+       * default: true
+       * work only top
+       */
+      mini?: boolean
+    }
+
+    controller?: {
+      /**
+       * default: 'always'
+       */
+      display?: 'always' | 'played'
+      /**
+       * default: if(source.title)
+       */
+      header?: boolean | { back?: 'always' | 'fullscreen' }
+      /**
+       * default: true
+       */
+      coverButton?: boolean
+      /**
+       * default: hover
+       *
+       */
+      displayBehavior?: 'hover' | 'delay' | 'none'
+      /**
+       * default: 'none'
+       */
+      slideToSeek?: 'none' | 'always' | 'long-touch'
+    }
+
+    setting?: {
+      /**
+       * default: 'auto'
+       * auto: mobile->top pc->top
+       */
+      postion?: 'auto' | 'top' | 'bottom'
+    }
+  }
+  /**
+   * default: false
+   */
+  autoFocus?: boolean
+
+  /**
+   * default: false
+   */
+  screenshot?: boolean
+  /**
+   * default: true
+   * 全屏（如果不可用将会降级为网页全屏）
+   */
+  fullscreen?: boolean
+  /**
+   * default: false
+   */
+  pictureInPicture?: boolean
+
+  /**
+   *  default: true
+   *  Whether or not the device should rotate to landscape mode when the video
+   *  enters fullscreen.  Note that this behavior is based on an experimental
+   *  browser API, and may not work on all platforms.
+   *  Defaults to true.
+   */
+  forceLandscapeOnFullscreen?: boolean
+
+  /**
+   * PC only - default: { focused: true }
+   */
+  keyboard?: { focused?: boolean; global?: boolean }
+
+  /**
+   * default: ['2.0', '1.75', '1.25', '1.0', '0.75', '0.5']
+   */
+  speeds?: string[]
+
+  subtitle?: Subtitle
+
+  /**
+   * default: ['loop', 'speed']
+   */
+  settings?: (Setting | 'loop')[] | false
+
+  thumbnails?: Thumbnails
+
+  highlight?: {
+    color?: string
+    source?: Highlight[]
+  }
+
+  menu?: MenuBar[]
+
+  errorBuilder?: (error: ErrorPayload, target: HTMLDivElement, cb: (error: ErrorPayload) => void) => void
+
+  icons?: {
+    play?: string
+    pause?: string
+    volume?: [string, string] //on off
+    fullscreen?: [string, string]
+    pip?: [string, string]
+    setting?: string
+    screenshot?: string
+    playbackRate?: string
+    loop?: string
+    progressIndicator?: string
+    loadingIndicator?: string
+    next?: string
+    previous?: string
+  }
+}
+```
+
+## Thumbnails
+
+```js
+// single
+thumbnails = {
+  number: 100,
+  src: 'https://oplayer.vercel.app/thumbnails.jpg'
+}
+// multipe & grid
+thumbnails = {
+  src: ['1.jpg', '2,jpg'],
+  x: 10,
+  y: 10,
+  number: 192
+}
+```
+
+## Add custom menu
+
+```js
+{
+  menu: [
+    {
+      name: 'Quality(清晰度)',
+      key: 'Quality', // for select
+      position: 'bottom', // or top
+      children: [
+        {
+          name: 'FHD',
+          default: true,
+          value: 'https://oplayer.vercel.app/君の名は.mp4'
+        },
+        {
+          name: 'HD',
+          value: 'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8'
+        },
+        {
+          name: 'SD',
+          value: 'https://dash.akamaized.net/akamai/bbb_30fps/bbb_30fps.mpd'
+        }
+      ],
+      onChange({ value }) {
+        player.changeQuality({ src: value })
+      }
+    }
+  ]
+}
+
+//or
+player.context.menu.register([])
+```
+
+## Add custom setting
+
+```js
+{
+  settings: [
+    'loop', // Build-in
+    'speed', // Build-in
+    {
+      // Custom
+      key: 'KEY',
+      type: 'selector', // or 'switcher'
+      name: 'name',
+      icon: 'icon',
+      children: [
+        { name: 'a', value: 'a', default: true },
+        { name: 'b', value: 'b', default: false }
+      ],
+      onChange: ({ value }) => {
+        // do something
+      }
+    }
+  ]
+}
+//or
+player.context.menu.register([])
+```
+
+## Highlight
+
+```js
+{
+  highlight: {
+    color: '#fff', //default
+    source: [
+      { time: 12, text: '谁でもいいはずなのに' },
+      { time: 34, text: '夏の想い出がまわる' },
+      { time: 58, text: 'こんなとこにあるはずもないのに' },
+      { time: 88, text: '－－终わり－－' }
+    ]
+  }
+}
+```
+
+## Methods
+
+All methods on `player.context.ui`
+
+```js
+// - Update subtitle
+player.context.ui.subtitle.changeSource([])
+
+// - Update highlight
+player.context.ui.changHighlightSource([])
+
+// - Update thumbnails
+player.context.ui.changThumbnails('src')
+
+// - Register menu
+player.context.ui.menu.register({})
+player.context.ui.menu.unregister('key')
+player.context.ui.menu.select('key', 'index')
+
+// - Register setting
+player.context.ui.setting.register({})
+player.context.ui.setting.unregister('key')
+player.context.ui.setting.updateLabel('key', 'text')
+player.context.ui.setting.select('key', 'index')
+
+// - Display error,notice
+player.emit('error', { message: 'msg', code: 'number' })
+player.context.ui.notice('hello')
+```
+
+## keyboard
+
+- `↑` volume +10%
+- `↓` volume -10%
+- `←` seek -5s
+- `→` seek +5s
+- `space` | `enter` play or pause
+- `s` catch a screenshot
+- `f` toggle full-screen
+- `w` toggle full-screen web
+- `m` toggle mute
+- `c` toggle setting panel
+
+## watermark
+
+```js
+const ui = OUI({
+  theme: {
+    watermark: {
+      src: '/your/path/logo.jpg',
+      style: {
+        position: 'absolute',
+        // want make screenshot include watermark?
+        // set positioning here, not css. [top, left, right, bottom]
+        top: '10px',
+        right: '10px',
+        width: '200px',
+        height: 'auto'
+      },
+      attrs: {
+        class: 'watermark'
+        // crossOrigin: 'anonymous'
+        // etc.
+      }
+    }
+  }
+})
+```
+
+## Add next,previous button
+
+- https://github.com/shiyiya/oplayer/discussions/88
+
+## Events
+
+```ts
+type UIEventName = 'controlsshown' | 'controlshidden' | 'backward' | 'previous' | 'next'
+```

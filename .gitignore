@@ -1,0 +1,12 @@
+.DS_Store
+.idea
+.fleet
+node_modules
+
+*error.log
+*debug.log
+
+dist
+.next
+out
+.nx
